@@ -23,7 +23,7 @@ build:
     - echo "nvcc is %NVCC%, CUDA path is %CUDA_PATH%"  # [linux or win]
     - export CUDAToolkit_ROOT=$CUDA_PATH  # [linux or win]
     - echo "CUDAToolkit_ROOT is %CUDAToolkit_ROOT%  # [linux or win]
-   - {{ PYTHON }} -m pip install . -vv
+    - {{ PYTHON }} -m pip install . -vv
 
 requirements:
   build:
@@ -34,11 +34,11 @@ requirements:
     - {{ compiler("cuda") }} # [win and linux]
     - cmake
   host:
-    - python  >=3.8
+    - python 
     - pip
     - numpy >=1.5.1
   run:
-    - python >=3.8
+    - python
     - numpy >=1.5.1
     - scipy >=1.1.0
     - pycuda >=2020.1 #[win and linux]

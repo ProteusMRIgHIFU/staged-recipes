@@ -1,0 +1,88 @@
+# Note: there are many handy hints in comments in this example -- remove them when you've finalized your recipe
+
+# Jinja variables help maintain the recipe as you'll update the version only here.
+# Using the name variable with the URL in line 14 is convenient
+# when copying and pasting from another recipe, but not really needed.
+{% set name = "BabelViscoFDTD" %}
+{% set version = "0.9.5" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://github.com/ProteusMRIgHIFU/BabelViscoFDTD/archive/refs/tags/0.9.5.tar.gz # [py>=38]
+  sha256: 198c3b5d7ea034cc16a44551ecfd29caf29475612d5d0b3b4c844f7cb7c7e480
+
+build:
+  number: 0
+  script: 
+    - export NVCC=$(which nvcc)                                                  # [linux]
+    - echo "nvcc is $NVCC, CUDA path is $CUDA_PATH"                              # [linux]
+    - for /f "tokens=* usebackq" %%f in (`where nvcc`) do (set "dummy=%%f" && call set "NVCC=%%dummy:\=\\%%")  # [win]
+    - echo "nvcc is %NVCC%, CUDA path is %CUDA_PATH%"  # [linux or win]
+    - export CUDAToolkit_ROOT=$CUDA_PATH  # [linux or win]
+    - echo "CUDAToolkit_ROOT is %CUDAToolkit_ROOT%  # [linux or win]
+   - {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  build:
+    # If your project compiles code (such as a C extension) then add the required compilers as separate entries here.
+    # Compilers are named 'c', 'cxx' and 'fortran'.
+    - {{ compiler('c') }}
+    - {{ compiler("cxx") }}
+    - {{ compiler("cuda") }} # [win and linux]
+    - cmake
+  host:
+    - python  >=3.8
+    - pip
+    - numpy >=1.5.1
+  run:
+    - python >=3.8
+    - numpy >=1.5.1
+    - scipy >=1.1.0
+    - pycuda >=2020.1 #[win and linux]
+    - pyopencl >=2020.1 
+    - h5py >=2.9.0
+    - hdf5plugin >=3.2  
+    - pydicom >=1.3.0 
+
+test:
+  # because we can't be sure a GPU will be available, the minimal test is to be able to import, which will include importing the binary components
+  commands:
+     python -c "from BabelViscoFDTD.PropagationModel import PropagationModel;PModel=PropagationModel()"
+    
+  
+
+about:
+  home: https://github.com/ProteusMRIgHIFU/BabelViscoFDTD
+  # Remember to specify the license variants for BSD, Apache, GPL, and LGPL.
+  # Use the SPDX identifier, e.g: GPL-2.0-only instead of GNU General Public License version 2.0
+  # See https://spdx.org/licenses/
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: 'GPU/CPU 3D FDTD solution of viscoelastic equation'
+  # The remaining entries in this section are optional, but recommended.
+  description: |
+    This tool solves in time domain the viscoelastic equation for wave propagation using an 
+    staggered grid solution. The solution is primarily based on a paper from Virieux 
+    (Virieux, J., 1986. P-SV wave propagation in heterogeneous media: Velocity-stress 
+    finite-difference method. Geophysics, 51(4), pp.889-901.), who implemented for the first 
+    time the staggered grid solution for the viscoelastic equation.
+ 
+    While the underlying equations and methods were  developed primarily for seismic simulation, 
+    the BabelViscoFDTD library was developed for biomedical applications to study the ultrasound 
+    transmission through bone material, with skull bone as primary target for study.
+    
+    The name of the library comes from the fact this software may be one of the very few libraries 
+    that support all modern backends for high-performance computing including CUDA, OpenCL and Metal.
+  doc_url: https://github.com/ProteusMRIgHIFU/BabelViscoFDTD
+  dev_url: https://github.com/ProteusMRIgHIFU/BabelViscoFDTD
+
+extra:
+  recipe-maintainers:
+    # GitHub IDs for maintainers of the recipe.
+    # Always check with the people listed below if they are OK becoming maintainers of the recipe. (There will be spam!)
+    - spichardo
+    

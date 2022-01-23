@@ -6,13 +6,24 @@
 {% set name = "BabelViscoFDTD" %}
 {% set version = "0.9.5" %}
 
+
+{% if cuda_compiler_version in (None, "None", True, False) %}
+{% set cuda_major = 0 %}
+{% set cuda_minor = 0 %}
+{% set cuda_major_minor = (0, 0) %}
+{% else %}
+{% set cuda_major = environ.get("cuda_compiler_version", "11.2").split(".")[0]|int %}
+{% set cuda_minor = environ.get("cuda_compiler_version", "11.2").split(".")[1]|int %}
+{% set cuda_major_minor = (cuda_major, cuda_minor) %}
+{% endif %}
+
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://github.com/ProteusMRIgHIFU/BabelViscoFDTD/archive/refs/tags/0.9.5.tar.gz # [py>=38]
-  sha256: 198c3b5d7ea034cc16a44551ecfd29caf29475612d5d0b3b4c844f7cb7c7e480
+  url: https://pypi.io/packages/source/B/BabelViscoFDTD/BabelViscoFDTD-0.9.5.tar.gz # [py>=38]
+  sha256: a65cff5ee2aae746d11384396519b3b4fc69342b87895932a8bd3241803baaa6
 
 build:
   number: 0
@@ -22,16 +33,19 @@ build:
     - for /f "tokens=* usebackq" %%f in (`where nvcc`) do (set "dummy=%%f" && call set "NVCC=%%dummy:\=\\%%")  # [win]
     - echo "nvcc is %NVCC%, CUDA path is %CUDA_PATH%"  # [linux or win]
     - export CUDAToolkit_ROOT=$CUDA_PATH  # [linux or win]
-    - echo "CUDAToolkit_ROOT is %CUDAToolkit_ROOT%  # [linux or win]
+    - echo "CUDAToolkit_ROOT is %CUDAToolkit_ROOT%"  # [linux or win]
     - {{ PYTHON }} -m pip install . -vv
 
 requirements:
+  number: 0
+  skip: true  # [(not osx64 and not osx-arm64 not win64 and not linux64 and (cuda_compiler_version != "11.2")) or cuda_compiler_version in (undefined, "None")]
+  
   build:
     # If your project compiles code (such as a C extension) then add the required compilers as separate entries here.
     # Compilers are named 'c', 'cxx' and 'fortran'.
     - {{ compiler('c') }}
     - {{ compiler("cxx") }}
-    - {{ compiler("cuda") }} # [win and linux]
+    - {{ compiler("cuda") }}
     - cmake
   host:
     - python 
